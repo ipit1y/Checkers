@@ -78,29 +78,25 @@ public class Board {
 
         if (piece == null) return moves;
 
-        int[] dirs = getDirections(piece);
+        if (piece.getType() == Type.KING) {
+            List<Move> captures = getKingCaptures(row, col, piece);
+            if (!captures.isEmpty()) return captures;
+            return getKingMoves(row, col);
+        }
 
+        int[] dirs = getDirections(piece);
         List<Move> captures = getCaptures(row, col, piece, dirs);
         if (!captures.isEmpty()) return captures;
 
         for (int dir : dirs) {
             int newRow = row + dir;
-            int newColL = col - 1;
-            int newColR = col + 1;
-
-            if (inBounds(newRow, newColL) && board[newRow][newColL] == null) {
-                moves.add(Move.builder()
-                        .fromRow(row).fromColumn(col)
-                        .toRow(newRow).toColumn(newColL)
-                        .isCapture(false)
-                        .build());
+            if (inBounds(newRow, col - 1) && board[newRow][col - 1] == null) {
+                moves.add(Move.builder().fromRow(row).fromColumn(col)
+                        .toRow(newRow).toColumn(col - 1).isCapture(false).build());
             }
-            if (inBounds(newRow, newColR) && board[newRow][newColR] == null) {
-                moves.add(Move.builder()
-                        .fromRow(row).fromColumn(col)
-                        .toRow(newRow).toColumn(newColR)
-                        .isCapture(false)
-                        .build());
+            if (inBounds(newRow, col + 1) && board[newRow][col + 1] == null) {
+                moves.add(Move.builder().fromRow(row).fromColumn(col)
+                        .toRow(newRow).toColumn(col + 1).isCapture(false).build());
             }
         }
 
@@ -126,5 +122,67 @@ public class Board {
                 piece.promote();
             }
         }
+    }
+
+    public List<Move> getAllForcedCaptures(model.enums.Color color) {
+        List<Move> captures = new ArrayList<>();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board[row][col];
+                if (piece != null && piece.getColor() == color) {
+                    List<Move> moves = getValidMoves(row, col);
+                    if (!moves.isEmpty() && moves.get(0).isCapture()) {
+                        captures.addAll(moves);
+                    }
+                }
+            }
+        }
+        return captures;
+    }
+    private List<Move> getKingMoves(int row, int col) {
+        List<Move> moves = new ArrayList<>();
+        for (int dr : new int[]{-1, 1}) {
+            for (int dc : new int[]{-1, 1}) {
+                int r = row + dr;
+                int c = col + dc;
+                while (inBounds(r, c) && board[r][c] == null) {
+                    moves.add(Move.builder().fromRow(row).fromColumn(col)
+                            .toRow(r).toColumn(c).isCapture(false).build());
+                    r += dr;
+                    c += dc;
+                }
+            }
+        }
+        return moves;
+    }
+
+    private List<Move> getKingCaptures(int row, int col, Piece piece) {
+        List<Move> captures = new ArrayList<>();
+        for (int dr : new int[]{-1, 1}) {
+            for (int dc : new int[]{-1, 1}) {
+                int r = row + dr;
+                int c = col + dc;
+                while (inBounds(r, c) && board[r][c] == null) {
+                    r += dr;
+                    c += dc;
+                }
+                if (!inBounds(r, c)) continue;
+                Piece target = board[r][c];
+                if (target.getColor() == piece.getColor()) continue;
+
+                int landR = r + dr;
+                int landC = c + dc;
+                while (inBounds(landR, landC) && board[landR][landC] == null) {
+                    captures.add(Move.builder().fromRow(row).fromColumn(col)
+                            .toRow(landR).toColumn(landC)
+                            .isCapture(true)
+                            .capturedRow(r).capturedColumn(c)
+                            .build());
+                    landR += dr;
+                    landC += dc;
+                }
+            }
+        }
+        return captures;
     }
 }
