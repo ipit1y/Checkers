@@ -19,14 +19,29 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.46</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx</artifactId>
-            <version>11</version>
-            <type>pom</type>
-            <scope>compile</scope>
+            <artifactId>javafx-controls</artifactId>
+            <version>21</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>21</version>
         </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>CheckersApp</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
