@@ -5,22 +5,28 @@ import model.Board;
 import model.GameState;
 import model.Move;
 import model.enums.*;
-
 import java.util.List;
 
 public class GameController {
     private final Board board;
     private final GameState gameState;
     private final BoardView boardView;
+    private final TimerView whiteTimer;
+    private final TimerView blackTimer;
 
     private int selectedRow = -1;
     private int selectedCol = -1;
     private List<Move> validMoves;
 
-    public GameController(Board board, GameState gameState, BoardView boardView) {
+    public GameController(Board board, GameState gameState, BoardView boardView,
+                          TimerView whiteTimer, TimerView blackTimer) {
         this.board = board;
         this.gameState = gameState;
         this.boardView = boardView;
+        this.whiteTimer = whiteTimer;
+        this.blackTimer = blackTimer;
+
+        whiteTimer.start();
 
         boardView.setOnMouseClicked(event -> {
             int col = (int) (event.getX() / 80);
@@ -35,8 +41,8 @@ public class GameController {
             if (move != null) {
                 board.makeMove(move);
                 gameState.checkWinCondition(board);
-
                 if (gameState.getStatus() != GameStatus.IN_PROGRESS) {
+                    stopAllTimers();
                     showWinDialog();
                     return;
                 }
@@ -50,27 +56,23 @@ public class GameController {
                         return;
                     }
                 }
-
                 gameState.switchPlayer();
+                switchTimers();
                 clearSelection();
                 boardView.draw();
                 return;
             }
-
             clearSelection();
         }
 
         List<Move> forcedCaptures = board.getAllForcedCaptures(gameState.getCurrentPlayer());
-
         var piece = board.getPiece(row, col);
         if (piece != null && piece.getColor() == gameState.getCurrentPlayer()) {
             List<Move> moves = board.getValidMoves(row, col);
-
             if (!forcedCaptures.isEmpty() && (moves.isEmpty() || !moves.get(0).isCapture())) {
                 boardView.drawWithForcedHighlight(forcedCaptures);
                 return;
             }
-
             selectedRow = row;
             selectedCol = col;
             validMoves = moves;
@@ -82,6 +84,21 @@ public class GameController {
                 boardView.draw();
             }
         }
+    }
+
+    private void switchTimers() {
+        if (gameState.getCurrentPlayer() == Color.WHITE) {
+            blackTimer.stop();
+            whiteTimer.start();
+        } else {
+            whiteTimer.stop();
+            blackTimer.start();
+        }
+    }
+
+    private void stopAllTimers() {
+        whiteTimer.stop();
+        blackTimer.stop();
     }
 
     private Move findMove(int row, int col) {
@@ -100,15 +117,18 @@ public class GameController {
 
     private void showWinDialog() {
         String message = switch (gameState.getStatus()) {
-            case WHITE_WINS -> "White wins!";
-            case BLACK_WINS -> "Black wins!";
+            case WHITE_WINS -> "White wins! Time: " + formatTime(whiteTimer.getSeconds());
+            case BLACK_WINS -> "Black wins! Time: " + formatTime(blackTimer.getSeconds());
             default -> "Draw!";
         };
-
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private String formatTime(int seconds) {
+        return String.format("%02d:%02d", seconds / 60, seconds % 60);
     }
 }

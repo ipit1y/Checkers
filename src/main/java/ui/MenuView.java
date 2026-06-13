@@ -44,9 +44,28 @@ public class MenuView {
         Board board = new Board();
         GameState gameState = new GameState();
         BoardView boardView = new BoardView(board);
-        new GameController(board, gameState, boardView);
 
-        javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(boardView);
-        stage.setScene(new Scene(root));
+        TimerView whiteTimer = new TimerView();
+        TimerView blackTimer = new TimerView();
+
+        whiteTimer.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
+        blackTimer.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
+
+        new GameController(board, gameState, boardView, whiteTimer, blackTimer);
+
+        javafx.scene.layout.HBox timerBar = new javafx.scene.layout.HBox();
+        timerBar.setStyle("-fx-background-color: #333; -fx-padding: 10;");
+        timerBar.setSpacing(20);
+        timerBar.setAlignment(javafx.geometry.Pos.CENTER);
+
+        javafx.scene.control.Label whiteLabel = new javafx.scene.control.Label("White: ");
+        whiteLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+        javafx.scene.control.Label blackLabel = new javafx.scene.control.Label("Black: ");
+        blackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+
+        timerBar.getChildren().addAll(whiteLabel, whiteTimer, blackLabel, blackTimer);
+
+        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(timerBar, boardView);
+        stage.setScene(new javafx.scene.Scene(root));
     }
 }
