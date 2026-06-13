@@ -13,4 +13,8 @@ public class Piece {
     public void promote(){
         this.type = Type.KING;
     }
+
+    public Piece copy() {
+        return new Piece(color, type);
+    }
 }

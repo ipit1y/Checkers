@@ -14,6 +14,10 @@ public class Board {
         initBoard();
     }
 
+    private Board(boolean empty) {
+        this.board = new Piece[8][8];
+    }
+
     private void initBoard(){
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
@@ -103,7 +107,6 @@ public class Board {
         return moves;
     }
 
-
     public void makeMove(Move move) {
         Piece piece = board[move.getFromRow()][move.getFromColumn()];
 
@@ -124,7 +127,7 @@ public class Board {
         }
     }
 
-    public List<Move> getAllForcedCaptures(model.enums.Color color) {
+    public List<Move> getAllForcedCaptures(Color color) {
         List<Move> captures = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
@@ -139,6 +142,7 @@ public class Board {
         }
         return captures;
     }
+
     private List<Move> getKingMoves(int row, int col) {
         List<Move> moves = new ArrayList<>();
         for (int dr : new int[]{-1, 1}) {
@@ -184,5 +188,48 @@ public class Board {
             }
         }
         return captures;
+    }
+
+    public Board copy() {
+        Board copy = new Board(true);
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                if (board[row][col] != null) {
+                    copy.board[row][col] = board[row][col].copy();
+                }
+            }
+        }
+        return copy;
+    }
+
+
+    public int countPieces(Color color) {
+        int count = 0;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece p = board[row][col];
+                if (p != null && p.getColor() == color) {
+                    count += (p.getType() == Type.KING) ? 3 : 1;
+                }
+            }
+        }
+        return count;
+    }
+
+
+    public List<Move> getAllMovesForColor(Color color) {
+        List<Move> captures = getAllForcedCaptures(color);
+        if (!captures.isEmpty()) return captures;
+
+        List<Move> moves = new ArrayList<>();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece p = board[row][col];
+                if (p != null && p.getColor() == color) {
+                    moves.addAll(getValidMoves(row, col));
+                }
+            }
+        }
+        return moves;
     }
 }
