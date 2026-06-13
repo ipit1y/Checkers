@@ -1,14 +1,18 @@
 package ui;
 
+import ai.AIPlayer;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import model.Board;
 import model.GameState;
+import model.enums.Color;
 
 public class MenuView {
 
@@ -29,9 +33,9 @@ public class MenuView {
         Button vsAI = new Button("vs AI");
         vsAI.setFont(Font.font(24));
         vsAI.setPrefWidth(200);
-        vsAI.setDisable(true); // поки AI не готовий
 
-        oneVsOne.setOnAction(e -> startGame());
+        oneVsOne.setOnAction(e -> startGame(false));
+        vsAI.setOnAction(e -> startGame(true));
 
         VBox layout = new VBox(20, title, oneVsOne, vsAI);
         layout.setAlignment(Pos.CENTER);
@@ -40,7 +44,7 @@ public class MenuView {
         return new Scene(layout);
     }
 
-    private void startGame() {
+    private void startGame(boolean vsAI) {
         Board board = new Board();
         GameState gameState = new GameState();
         BoardView boardView = new BoardView(board);
@@ -51,21 +55,27 @@ public class MenuView {
         whiteTimer.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         blackTimer.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
 
-        new GameController(board, gameState, boardView, whiteTimer, blackTimer);
+        // якщо vs AI — AI грає чорними
+        if (vsAI) {
+            AIPlayer ai = new AIPlayer(Color.BLACK);
+            new GameController(board, gameState, boardView, whiteTimer, blackTimer, ai);
+        } else {
+            new GameController(board, gameState, boardView, whiteTimer, blackTimer);
+        }
 
-        javafx.scene.layout.HBox timerBar = new javafx.scene.layout.HBox();
+        HBox timerBar = new HBox();
         timerBar.setStyle("-fx-background-color: #333; -fx-padding: 10;");
         timerBar.setSpacing(20);
-        timerBar.setAlignment(javafx.geometry.Pos.CENTER);
+        timerBar.setAlignment(Pos.CENTER);
 
-        javafx.scene.control.Label whiteLabel = new javafx.scene.control.Label("White: ");
+        Label whiteLabel = new Label("White: ");
         whiteLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
-        javafx.scene.control.Label blackLabel = new javafx.scene.control.Label("Black: ");
+        Label blackLabel = new Label("Black: ");
         blackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
 
         timerBar.getChildren().addAll(whiteLabel, whiteTimer, blackLabel, blackTimer);
 
-        javafx.scene.layout.VBox root = new javafx.scene.layout.VBox(timerBar, boardView);
-        stage.setScene(new javafx.scene.Scene(root));
+        VBox root = new VBox(timerBar, boardView);
+        stage.setScene(new Scene(root));
     }
 }
